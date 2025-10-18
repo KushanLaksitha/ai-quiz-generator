@@ -142,8 +142,8 @@ ai-quiz-generator/
 - **Vanilla JavaScript** - Interactive features
 
 ### Database
-- **SQLite** - Development database
-- **PostgreSQL** - Production database (recommended)
+- **MYSQL** - Development database
+
 
 ## 📚 Usage
 

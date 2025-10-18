@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .quiz-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        animation: fadeInDown 0.6s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .quiz-header::before {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .quiz-header h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .quiz-header .lead {
+        color: #666;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .progress-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        animation: fadeIn 0.6s ease 0.2s backwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .progress-text {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .progress {
+        height: 12px;
+        border-radius: 10px;
+        background: #e0e0e0;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .question-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        animation: slideInUp 0.6s ease backwards;
+        transition: all 0.3s ease;
+    }
+    
+    .question-card:nth-child(1) { animation-delay: 0.1s; }
+    .question-card:nth-child(2) { animation-delay: 0.15s; }
+    .question-card:nth-child(3) { animation-delay: 0.2s; }
+    .question-card:nth-child(4) { animation-delay: 0.25s; }
+    .question-card:nth-child(5) { animation-delay: 0.3s; }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .question-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .question-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .question-number {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.3rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .question-label {
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .question-body {
+        padding: 2rem;
+    }
+    
+    .question-text {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .choice-option {
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .choice-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .choice-option:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateX(5px);
+    }
+    
+    .choice-option:hover::before {
+        transform: scaleY(1);
+    }
+    
+    .choice-radio {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #999;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .choice-radio::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+    }
+    
+    .form-check-input {
+        display: none;
+    }
+    
+    .form-check-input:checked + .choice-option {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-check-input:checked + .choice-option::before {
+        transform: scaleY(1);
+    }
+    
+    .form-check-input:checked + .choice-option .choice-radio {
+        border-color: #667eea;
+    }
+    
+    .form-check-input:checked + .choice-option .choice-radio::after {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .choice-text {
+        color: #333;
+        font-size: 1rem;
+        font-weight: 500;
+        flex-grow: 1;
+    }
+    
+    .submit-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: fadeIn 0.6s ease 0.5s backwards;
+    }
+    
+    .submit-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 1.25rem 3rem;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .submit-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .submit-button:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .submit-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+    
+    .submit-button span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .quiz-header {
+            padding: 1.5rem;
+        }
+        
+        .quiz-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .question-body {
+            padding: 1.5rem;
+        }
+        
+        .submit-button {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="quiz-header">
+    <h1><i class="fas fa-clipboard-list me-3"></i>{{ quiz.title }}</h1>
+    <p class="lead mb-0"><i class="fas fa-lightbulb me-2"></i>Take this quiz generated from your uploaded document.</p>
+</div>
+
+<div class="progress-container">
+    <div class="progress-text">
+        <span><i class="fas fa-tasks me-2"></i>Question <span id="currentQuestion">1</span> of {{ questions|length }}</span>
+        <span id="progressPercent">0%</span>
+    </div>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" id="quizProgress" style="width: 0%"></div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('main.submit_quiz', quiz_id=quiz.id) }}" id="quizForm">
+    {% for question in questions %}
+    <div class="question-card">
+        <div class="question-header">
+            <div class="question-number">{{ loop.index }}</div>
+            <h5 class="question-label">Question {{ loop.index }}</h5>
+        </div>
+        <div class="question-body">
+            <p class="question-text">{{ question.text }}</p>
+            {% for choice in question.choices %}
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}" required data-question="{{ loop.index }}">
+                <label class="choice-option" for="choice_{{ choice.id }}">
+                    <div class="choice-radio"></div>
+                    <span class="choice-text">{{ choice.text }}</span>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="submit-container">
+        <button type="submit" class="submit-button">
+            <span><i class="fas fa-paper-plane me-2"></i>Submit Quiz</span>
+        </button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('quizForm');
+    const totalQuestions = {{ questions|length }};
+    const progressBar = document.getElementById('quizProgress');
+    const progressPercent = document.getElementById('progressPercent');
+    const currentQuestionEl = document.getElementById('currentQuestion');
+    
+    // Track answered questions
+    const radioButtons = document.querySelectorAll('.form-check-input');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', updateProgress);
+    });
+    
+    function updateProgress() {
+        const answeredQuestions = new Set();
+        radioButtons.forEach(radio => {
+            if (radio.checked) {
+                answeredQuestions.add(radio.getAttribute('data-question'));
+            }
+        });
+        
+        const answered = answeredQuestions.size;
+        const percent = Math.round((answered / totalQuestions) * 100);
+        
+        progressBar.style.width = percent + '%';
+        progressPercent.textContent = percent + '%';
+        currentQuestionEl.textContent = answered;
+    }
+    
+    // Smooth scroll to question on selection
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const questionCard = this.closest('.question-card');
+            const nextCard = questionCard.nextElementSibling;
+            
+            if (nextCard && nextCard.classList.contains('question-card')) {
+                setTimeout(() => {
+                    nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

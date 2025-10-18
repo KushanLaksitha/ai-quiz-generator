@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if title %}
+    <title>{{ title }} - AI Quiz Generator</title>
+    {% else %}
+    <title>AI Quiz Generator</title>
+    {% endif %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            z-index: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+        
+        .nav-link {
+            color: #333 !important;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 80%;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 15px;
+            padding: 1.25rem;
+            animation: slideInDown 0.5s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, rgba(75, 255, 175, 0.9), rgba(0, 242, 254, 0.9));
+            color: white;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(255, 148, 120, 0.9));
+            color: white;
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: var(--card-shadow);
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-brain me-2"></i>AI Quiz Generator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-list-check me-1"></i>My Quizzes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.upload_file') }}">
+                            <i class="fas fa-cloud-upload-alt me-1"></i>Upload PDF
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.logout') }}">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.register') }}">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'message' or category == 'success' else 'danger' }}" role="alert">
+                    <i class="fas fa-{{ 'check-circle' if category == 'message' or category == 'success' else 'exclamation-circle' }} me-2"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

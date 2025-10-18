@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .welcome-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        animation: fadeInUp 0.6s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .welcome-header h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .welcome-header h2 {
+        color: #555;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .quiz-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        position: relative;
+        animation: fadeInUp 0.6s ease backwards;
+    }
+    
+    .quiz-card:nth-child(1) { animation-delay: 0.1s; }
+    .quiz-card:nth-child(2) { animation-delay: 0.2s; }
+    .quiz-card:nth-child(3) { animation-delay: 0.3s; }
+    .quiz-card:nth-child(4) { animation-delay: 0.4s; }
+    .quiz-card:nth-child(5) { animation-delay: 0.5s; }
+    
+    .quiz-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleY(0);
+        transition: transform 0.4s ease;
+    }
+    
+    .quiz-card:hover {
+        transform: translateX(10px);
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+    }
+    
+    .quiz-card:hover::before {
+        transform: scaleY(1);
+    }
+    
+    .quiz-card-body {
+        padding: 2rem;
+    }
+    
+    .quiz-title {
+        font-weight: 700;
+        color: #333;
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .quiz-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .quiz-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid #f0f0f0;
+    }
+    
+    .quiz-questions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .quiz-date {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    .empty-state {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        color: white;
+        font-size: 3rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .empty-state h3 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .cta-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .welcome-header {
+            padding: 2rem 1.5rem;
+        }
+        
+        .welcome-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .quiz-card:hover {
+            transform: translateX(5px);
+        }
+    }
+</style>
+
+<div class="welcome-header">
+    <h1><i class="fas fa-hand-sparkles me-2"></i>Hi, {{ current_user.username }}!</h1>
+    <h2><i class="fas fa-graduation-cap me-2"></i>Your Quizzes</h2>
+</div>
+
+{% if quizzes %}
+    {% for quiz in quizzes %}
+    <a href="{{ url_for('main.view_quiz', quiz_id=quiz.id) }}" class="quiz-card text-decoration-none">
+        <div class="quiz-card-body">
+            <div class="quiz-title">
+                <div class="quiz-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <span>{{ quiz.title }}</span>
+            </div>
+            <div class="quiz-meta">
+                <div class="quiz-questions">
+                    <i class="fas fa-question-circle"></i>
+                    <span>{{ quiz.questions.count() }} questions</span>
+                </div>
+                <div class="quiz-date">
+                    <i class="far fa-clock me-1"></i>
+                    {{ quiz.timestamp.strftime('%b %d, %Y') }}
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-folder-open"></i>
+        </div>
+        <h3>No Quizzes Yet!</h3>
+        <p>Start your learning journey by uploading your first PDF document.</p>
+        <a href="{{ url_for('main.upload_file') }}" class="cta-button">
+            <i class="fas fa-cloud-upload-alt me-2"></i>Upload Your First PDF
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

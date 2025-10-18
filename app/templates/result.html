@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .results-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        animation: fadeInDown 0.6s ease;
+        text-align: center;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .results-header h1 {
+        color: #333;
+        font-weight: 800;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .score-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        animation: zoomIn 0.8s ease 0.2s backwards;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    @keyframes zoomIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .score-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent 90deg);
+        animation: rotate 6s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .score-svg {
+        transform: rotate(-90deg);
+    }
+    
+    .score-circle-bg {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 12;
+    }
+    
+    .score-circle-fill {
+        fill: none;
+        stroke: url(#scoreGradient);
+        stroke-width: 12;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 2s ease;
+    }
+    
+    .score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .score-label {
+        font-size: 1.3rem;
+        color: #666;
+        font-weight: 600;
+        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .score-percentage {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .section-title {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        animation: fadeIn 0.6s ease 0.4s backwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .section-title h2 {
+        color: #333;
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .result-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: slideInUp 0.6s ease backwards;
+        transition: all 0.3s ease;
+    }
+    
+    .result-card:nth-child(1) { animation-delay: 0.5s; }
+    .result-card:nth-child(2) { animation-delay: 0.55s; }
+    .result-card:nth-child(3) { animation-delay: 0.6s; }
+    .result-card:nth-child(4) { animation-delay: 0.65s; }
+    .result-card:nth-child(5) { animation-delay: 0.7s; }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .result-card.correct {
+        border-left: 6px solid #4ade80;
+    }
+    
+    .result-card.incorrect {
+        border-left: 6px solid #f87171;
+    }
+    
+    .result-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .result-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .result-status.correct {
+        background: rgba(74, 222, 128, 0.15);
+        color: #16a34a;
+    }
+    
+    .result-status.incorrect {
+        background: rgba(248, 113, 113, 0.15);
+        color: #dc2626;
+    }
+    
+    .question-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        line-height: 1.6;
+    }
+    
+    .result-body {
+        padding: 1.5rem 2rem;
+    }
+    
+    .answer-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .answer-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .answer-text {
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    
+    .answer-text.correct {
+        background: rgba(74, 222, 128, 0.1);
+        color: #16a34a;
+        border: 2px solid rgba(74, 222, 128, 0.3);
+    }
+    
+    .answer-text.incorrect {
+        background: rgba(248, 113, 113, 0.1);
+        color: #dc2626;
+        border: 2px solid rgba(248, 113, 113, 0.3);
+    }
+    
+    .choices-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .choice-item {
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s ease;
+    }
+    
+    .choice-item.correct-answer {
+        background: rgba(74, 222, 128, 0.1);
+        border-color: #4ade80;
+    }
+    
+    .choice-item.user-incorrect {
+        background: rgba(248, 113, 113, 0.1);
+        border-color: #f87171;
+    }
+    
+    .choice-badge {
+        padding: 0.35rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .choice-badge.correct {
+        background: #4ade80;
+        color: white;
+    }
+    
+    .choice-badge.incorrect {
+        background: #f87171;
+        color: white;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 1rem 2.5rem;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: fadeIn 0.6s ease 1s backwards;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .button-container {
+        text-align: center;
+        margin-top: 3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .score-container {
+            padding: 2rem 1.5rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .score-text {
+            font-size: 2.5rem;
+        }
+        
+        .score-percentage {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="results-header">
+    <h1><i class="fas fa-chart-pie me-2"></i>Quiz Results for "{{ quiz.title }}"</h1>
+</div>
+
+<div class="score-container">
+    <div class="score-circle">
+        <svg class="score-svg" width="200" height="200" viewBox="0 0 200 200">
+            <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+            <circle class="score-circle-fill" cx="100" cy="100" r="90" 
+                    style="stroke-dasharray: 565.48; stroke-dashoffset: {{ 565.48 * (1 - score / total_questions) }}">
+            </circle>
+        </svg>
+        <div class="score-text">{{ score }}/{{ total_questions }}</div>
+    </div>
+    <div class="score-label">Your Score</div>
+    <div class="score-percentage">{{ ((score / total_questions) * 100) | round | int }}%</div>
+</div>
+
+<div class="section-title">
+    <h2><i class="fas fa-list-check me-2"></i>Detailed Results</h2>
+</div>
+
+{% for result in results %}
+<div class="result-card {% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+    <div class="result-header">
+        <span class="result-status {% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+            <i class="fas fa-{% if result.is_correct %}check-circle{% else %}times-circle{% endif %}"></i>
+            {% if result.is_correct %}Correct{% else %}Incorrect{% endif %}
+        </span>
+        <h5 class="question-title">{{ result.question_text }}</h5>
+    </div>
+    <div class="result-body">
+        <div class="answer-section">
+            <div class="answer-label">
+                <i class="fas fa-user"></i>
+                Your Answer:
+            </div>
+            {% set submitted_choice_text = 'Not Answered' %}
+            {% for choice in result.all_choices %}
+                {% if choice.id == (result.submitted_choice_id | int) %}
+                    {% set submitted_choice_text = choice.text %}
+                {% endif %}
+            {% endfor %}
+            <div class="answer-text {% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+                {{ submitted_choice_text }}
+            </div>
+        </div>
+        
+        {% if not result.is_correct %}
+        <div class="answer-section">
+            <div class="answer-label">
+                <i class="fas fa-lightbulb"></i>
+                Correct Answer:
+            </div>
+            <div class="answer-text correct">
+                {{ result.correct_answer }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="answer-section">
+            <div class="answer-label">
+                <i class="fas fa-list"></i>
+                All Options:
+            </div>
+            <ul class="choices-list">
+                {% for choice in result.all_choices %}
+                <li class="choice-item {% if choice.is_correct_option %}correct-answer{% elif choice.id == (result.submitted_choice_id | int) and not result.is_correct %}user-incorrect{% endif %}">
+                    <span>{{ choice.text }}</span>
+                    {% if choice.is_correct_option %}
+                        <span class="choice-badge correct">
+                            <i class="fas fa-check"></i> Correct
+                        </span>
+                    {% elif choice.id == (result.submitted_choice_id | int) and not result.is_correct %}
+                        <span class="choice-badge incorrect">
+                            <i class="fas fa-times"></i> Your Answer
+                        </span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="button-container">
+    <a href="{{ url_for('main.index') }}" class="back-button">
+        <i class="fas fa-home me-2"></i>Back to My Quizzes
+    </a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate score circle
+    const scoreCircle = document.querySelector('.score-circle-fill');
+    if (scoreCircle) {
+        const finalOffset = scoreCircle.style.strokeDashoffset;
+        scoreCircle.style.strokeDashoffset = '565.48';
+        setTimeout(() => {
+            scoreCircle.style.strokeDashoffset = finalOffset;
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
